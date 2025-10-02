@@ -6,3 +6,9 @@ git push
 git merge
 git rebase
 git fetch
+git add
+git status
+git log
+A note about -u <remote> <branch> under git push
+git diff
+
