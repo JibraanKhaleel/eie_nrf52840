@@ -5,6 +5,7 @@
 #include <zephyr/smf.h>
 
 #include "LED.h"
+#include "BTN.h"
 #include "my_state_machine.h"
 
 //prototypes (commented out unneededstuff from lesson)
@@ -108,10 +109,10 @@ int state_machine_run() {
 
 //s0 functions
 static void s0_enter(void* o) {
-    LED_SET(LED0, LED_OFF);
-    LED_SET(LED1, LED_OFF);
-    LED_SET(LED2, LED_OFF);
-    LED_SET(LED3, LED_OFF);
+    LED_set(LED0, LED_OFF);
+    LED_set(LED1, LED_OFF);
+    LED_set(LED2, LED_OFF);
+    LED_set(LED3, LED_OFF);
 }
 
 static enum smf_state_result s0_run(void* o) {
@@ -127,13 +128,18 @@ static enum smf_state_result s0_run(void* o) {
     return SMF_EVENT_HANDLED;
 }
 
-static void s0_exit(void* o) {}
+static void s0_exit(void* o) {
+    LED_set(LED0, LED_OFF);
+    LED_set(LED1, LED_OFF);
+    LED_set(LED2, LED_OFF);
+    LED_set(LED3, LED_OFF);
+}
 
 
 //s1 functions
 static void s1_enter(void* o) {}
-static enum smf_state_result s1_run(void* o) {
 
+static enum smf_state_result s1_run(void* o) {
     if(led_state_object.count >= 125) {
         led_state_object.count = 0;
         LED_toggle(LED0);
@@ -146,29 +152,103 @@ static enum smf_state_result s1_run(void* o) {
 
     if(BTN_check_clear_pressed(BTN2)) {
         led_state_object.count = 0;
-        smf_set_state(SMF_CTX(&led_state_object), &led_states[s3]);
+        smf_set_state(SMF_CTX(&led_state_object), &led_states[s4]);
     }
     
     led_state_object.count++;
+    if(BTN_check_clear_pressed(BTN3)) {
+        led_state_object.count = 0;
+        smf_set_state(SMF_CTX(&led_state_object), &led_states[s0]);
+    }
+
+    led_state_object.count++;
+    return SMF_EVENT_HANDLED;
+
 }
 static void s1_exit(void* o) {
-    LED_SET(LED0, LED_OFF);
+    LED_set(LED0, LED_OFF);
 }
 
 //s2 functions
 static void s2_enter(void* o) {
-    LED_SET(LED0, LED_ON);
-    LED_SET(LED1, LED_OFF);
-    LED_SET(LED2, LED_ON);
-    LED_SET(LED3, LED_OFF);
+    LED_set(LED0, LED_ON);
+    LED_set(LED1, LED_OFF);
+    LED_set(LED2, LED_ON);
+    LED_set(LED3, LED_OFF);
 }
 
 static enum smf_state_result s2_run(void* o) {
+    
+    led_state_object.count++;
     if(BTN_check_clear_pressed(BTN3)) {
+        led_state_object.count = 0;
         smf_set_state(SMF_CTX(&led_state_object), &led_states[s0]);
     }
+
+
+    if(led_state_object.count >= 1000) {
+        led_state_object.count = 0;
+        smf_set_state(SMF_CTX(&led_state_object), &led_states[s3]);
+    }
+    return SMF_EVENT_HANDLED;
 }
 
+static void s2_exit(void* o) {}
+
+//s3 functions
+
+static void s3_enter(void* o) {
+    LED_set(LED0, LED_OFF);
+    LED_set(LED1, LED_ON);
+    LED_set(LED2, LED_OFF);
+    LED_set(LED3, LED_ON);
+}
+
+static enum smf_state_result s3_run(void* o) {
+    led_state_object.count++;
+    if(BTN_check_clear_pressed(BTN3)) {
+        led_state_object.count = 0;
+        smf_set_state(SMF_CTX(&led_state_object), &led_states[s0]);
+    }
+    if(led_state_object.count >= 2000) {
+        led_state_object.count = 0;
+        smf_set_state(SMF_CTX(&led_state_object), &led_states[s2]);
+    }
+    return SMF_EVENT_HANDLED;
+}
+static void s3_exit(void* o) {}
+
+//s4 functions
+static void s4_enter(void* o) {
+    LED_set(LED0, LED_OFF);
+    LED_set(LED1, LED_OFF);
+    LED_set(LED2, LED_OFF);
+    LED_set(LED3, LED_OFF);
+}
+
+static enum smf_state_result s4_run(void* o) {
+    if(led_state_object.count >= 31.25) {
+        LED_toggle(LED0);
+        LED_toggle(LED1);
+        LED_toggle(LED2);
+        LED_toggle(LED3);
+        led_state_object.count = 0;
+    }
+
+    if(BTN_check_clear_pressed(BTN3)){
+        led_state_object.count = 0;
+        smf_set_state(SMF_CTX(&led_state_object), &led_states[s0]);
+    }
+    led_state_object.count++;
+    return SMF_EVENT_HANDLED;
+}
+
+static void s4_exit(void* o){
+    LED_set(LED0, LED_OFF);
+    LED_set(LED1, LED_OFF);
+    LED_set(LED2, LED_OFF);
+    LED_set(LED3, LED_OFF);
+}
 
 /*
 static void led_on_state_exit(void* o) {
