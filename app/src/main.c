@@ -21,8 +21,22 @@ int main(void) {
     return 0;
   }
 
+uint8_t current_duty_cycle = 0;
+LED_pwm(LED0, current_duty_cycle);
+LED_pwm(LED1, current_duty_cycle);
+LED_pwm(LED2, current_duty_cycle);
+LED_pwm(LED3, current_duty_cycle);
+
   while(1) {
-    k_msleep(SLEEP_MS);
+  if (BTN_check_clear_pressed(BTN0)) {
+    current_duty_cycle = (current_duty_cycle >= 100) ? 0 : (current_duty_cycle + 10);
+    printk("Setting LED0 to %d%% brightness. \n", current_duty_cycle);
+    LED_pwm(LED0, current_duty_cycle);
+    LED_pwm(LED1, current_duty_cycle);
+    LED_pwm(LED2, current_duty_cycle);
+    LED_pwm(LED3, current_duty_cycle);
+  }
+  k_msleep(SLEEP_MS);
   }
 	return 0;
 }
