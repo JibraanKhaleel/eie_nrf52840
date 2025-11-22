@@ -18,6 +18,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/settings/settings.h>
 #include <zephyr/sys/printk.h>
+#include "LED.h"
+#include "BTN.h"
 
 /* MACROS --------------------------------------------------------------------------------------- */
 
@@ -98,14 +100,25 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
     printk("[BLE] ble_custom_service_write: Bad offset %d\n", offset + len);
     return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
   }
-
+  char led_check_str[] = "LED ON";
+  int rv = 0;
   memcpy(value + offset, buf, len);
   value[offset + len] = 0;
-
   printk("[BLE] ble_custom_service_write (%d, %d):", offset, len);
   for (uint16_t i = 0; i < len; i++) {
     printk("%s %02X '%c'", i == 0 ? "" : ",", value[offset + i], value[offset + i]);
+    if (value[offset + i] == led_check_str[i]) rv = 1;
   }
+
+  //added below here q1
+  printk("%s", value);
+  if (!strcmp("LED ON", value))
+    LED_set(LED1, LED_ON);
+  
+  if(!strcmp("LED OFF", value))
+    LED_set(LED0, LED_OFF);
+  //didnt work
+
   printk("\n");
 
   return len;
