@@ -101,9 +101,7 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
     printk("[BLE] ble_custom_service_write: Bad offset %d\n", offset + len);
     return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
   }
-  //char ledon_check_str[] = "LED ON";
-  //char ledoff_check_str[] = "LED OFF";
-  //int rv = 0;
+
   char written_string[100] = ""; 
   memcpy(value + offset, buf, len);
   value[offset + len] = 0;
@@ -112,13 +110,9 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
     printk("%s %02X '%c'", i == 0 ? "" : ",", value[offset + i], value[offset + i]);
     written_string[i] = value[offset + i];
     written_string[i+1] = '\0';
-    //if (value[offset + i] == ledon_check_str[i]) rv = 1;
-    //if (value[offset + i] == ledoff_check_str[i]) rv = 2;
   }
   //printk("\n%d", rv);
   printk("\n%s", written_string);
-  //if(rv == 1) LED_set(LED0, LED_ON);"LED_ON"
-  //if(rv == 2) LED_set(LED0, LED_OFF);
 
   if(strcmp(written_string, "LED ON") == 0)
     LED_set(LED0, LED_ON);
@@ -131,8 +125,14 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
 
 static void ble_custom_service_notify() {
   static uint32_t counter = 0;
+  static bool count_up = 1;
   bt_gatt_notify(NULL, &ble_custom_service.attrs[2], &counter, sizeof(counter));
-  counter++;
+  if(BTN_check_clear_pressed(BTN0))
+    count_up = !count_up;
+
+  if(count_up == 0)
+    counter--;
+  else(counter++);
 }
 
 /* MAIN ----------------------------------------------------------------------------------------- */
