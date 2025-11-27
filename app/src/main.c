@@ -81,16 +81,27 @@ BT_GATT_SERVICE_DEFINE(
 
 /* FUNCTIONS ------------------------------------------------------------------------------------ */
 
+static int led0_setting = 0; //used for q3, global var that is checked in read function above
+
 
 static ssize_t ble_custom_service_read(struct bt_conn* conn, const struct bt_gatt_attr* attr,
                                        void* buf, uint16_t len, uint16_t offset) {
   // Send the data that is stored in the characteristic ("EiE" by default, can change if written to)
   // by fetching it directly from the characteristic object
-  const char* data_to_send_to_connected_device = attr->user_data;
-
+  const char* data_to_send_to_connected_device;
+  // old code before q3: changes read to whatever was just written: const char* data_to_send_to_connected_device = attr->user_data;
+  
+  //new code in if else: controls LED setting based on the global variable that gets edited when LED ON is made as the read value and LED 0 turns on
+  if(led0_setting == 1) {
+    data_to_send_to_connected_device = "LED ON";
+  }
+  else {
+    data_to_send_to_connected_device = "LED OFF";
+  }
   return bt_gatt_attr_read(conn, attr, buf, len, offset, data_to_send_to_connected_device,
                            strlen(data_to_send_to_connected_device));
 }
+
 
 static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_gatt_attr* attr,
                                         const void* buf, uint16_t len, uint16_t offset,
@@ -102,7 +113,8 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
     return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
   }
 
-  char written_string[100] = ""; 
+  static char written_string[100] = "";
+
   memcpy(value + offset, buf, len);
   value[offset + len] = 0;
   printk("[BLE] ble_custom_service_write (%d, %d):", offset, len);
@@ -114,10 +126,14 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
   //printk("\n%d", rv);
   printk("\n%s", written_string);
 
-  if(strcmp(written_string, "LED ON") == 0)
+  if(strcmp(written_string, "LED ON") == 0) {
     LED_set(LED0, LED_ON);
-  if(strcmp(written_string, "LED OFF") == 0)
+    led0_setting = 1;
+  }
+  if(strcmp(written_string, "LED OFF") == 0) {
     LED_set(LED0, LED_OFF);
+    led0_setting = 0;
+  }
   printk("\n");
 
   return len;
