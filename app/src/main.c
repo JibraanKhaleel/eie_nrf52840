@@ -81,6 +81,7 @@ BT_GATT_SERVICE_DEFINE(
 
 /* FUNCTIONS ------------------------------------------------------------------------------------ */
 
+
 static ssize_t ble_custom_service_read(struct bt_conn* conn, const struct bt_gatt_attr* attr,
                                        void* buf, uint16_t len, uint16_t offset) {
   // Send the data that is stored in the characteristic ("EiE" by default, can change if written to)
@@ -100,25 +101,29 @@ static ssize_t ble_custom_service_write(struct bt_conn* conn, const struct bt_ga
     printk("[BLE] ble_custom_service_write: Bad offset %d\n", offset + len);
     return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
   }
-  char led_check_str[] = "LED ON";
-  int rv = 0;
+  //char ledon_check_str[] = "LED ON";
+  //char ledoff_check_str[] = "LED OFF";
+  //int rv = 0;
+  char written_string[100] = ""; 
   memcpy(value + offset, buf, len);
   value[offset + len] = 0;
   printk("[BLE] ble_custom_service_write (%d, %d):", offset, len);
   for (uint16_t i = 0; i < len; i++) {
     printk("%s %02X '%c'", i == 0 ? "" : ",", value[offset + i], value[offset + i]);
-    if (value[offset + i] == led_check_str[i]) rv = 1;
+    written_string[i] = value[offset + i];
+    written_string[i+1] = '\0';
+    //if (value[offset + i] == ledon_check_str[i]) rv = 1;
+    //if (value[offset + i] == ledoff_check_str[i]) rv = 2;
   }
+  //printk("\n%d", rv);
+  printk("\n%s", written_string);
+  //if(rv == 1) LED_set(LED0, LED_ON);"LED_ON"
+  //if(rv == 2) LED_set(LED0, LED_OFF);
 
-  //added below here q1
-  printk("%s", value);
-  if (!strcmp("LED ON", value))
-    LED_set(LED1, LED_ON);
-  
-  if(!strcmp("LED OFF", value))
+  if(strcmp(written_string, "LED ON") == 0)
+    LED_set(LED0, LED_ON);
+  if(strcmp(written_string, "LED OFF") == 0)
     LED_set(LED0, LED_OFF);
-  //didnt work
-
   printk("\n");
 
   return len;
@@ -133,6 +138,13 @@ static void ble_custom_service_notify() {
 /* MAIN ----------------------------------------------------------------------------------------- */
 
 int main(void) {
+  if (0 > BTN_init()) {
+    return 0;
+  }
+  if (0 > LED_init()) {
+    return 0;
+  }
+
   int err = bt_enable(NULL);
   if (err) {
     printk("Bluetooth init failed (err %d)\n", err);
