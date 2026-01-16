@@ -74,7 +74,7 @@ BT_GATT_SERVICE_DEFINE(
     BT_GATT_CHARACTERISTIC(
         &ble_custom_characteristic_uuid.uuid,  // Setting the characteristic UUID
         BT_GATT_CHRC_WRITE | BT_GATT_CHRC_READ,  // Possible operations
-        BT_GATT_PERM_WRITE | BT_GATT_PERM_READ,  // Permissions that connecting devices have
+        BT_GATT_PERM_READ,  // Permissions that connecting devices have
         ble_custom_characteristic_read_cb,     // Callback for when this characteristic is read from
         ble_custom_characteristic_write_cb,    // Callback for when this characteristic is written to
         ble_custom_characteristic_user_data    // Initial data stored in this characteristic
@@ -83,7 +83,7 @@ BT_GATT_SERVICE_DEFINE(
     BT_GATT_CHARACTERISTIC(
       &ble_custom_characteristic_new_uuid.uuid,
       BT_GATT_CHRC_WRITE | BT_GATT_CHRC_READ,
-      BT_GATT_PERM_WRITE | BT_GATT_PERM_READ,
+      BT_GATT_PERM_WRITE,
       ble_custom_characteristic_read_cb,
       ble_custom_characteristic_write_cb,
       ble_custom_characteristic_user_data
@@ -113,6 +113,7 @@ int main(void) {
   
 
   while(1) {
+    
     k_msleep(SLEEP_MS);
   }
 	return 0;
